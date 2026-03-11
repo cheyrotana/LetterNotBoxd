@@ -1,35 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:letternotboxd/services/movie_service.dart';
+import 'viewmodels/home_viewmodel.dart';
+// import 'viewmodels/search_viewmodel.dart';
+// import 'viewmodels/movie_detail_viewmodel.dart';
+// import 'viewmodels/watchlist_viewmodel.dart';
 import 'core/theme/app_theme.dart';
 
 Future<void> mainCommon({required String env}) async {
-  // Ensures Flutter engine is ready before doing anything
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Hive is a lightweight local database that stores data on the device
-  // Think of it like a key-value store (like a Map but saved to disk)
-  // We use it to save watchlist movies locally without needing a backend
-  // initFlutter() sets up Hive to work with Flutter's file system
   await Hive.initFlutter();
 
-  // Here you can later do env-specific setup
-  // e.g. if (env == 'dev') { enable logging } else { disable logging }
+  // Single shared instance of MovieService injected into all viewmodels
+  final movieService = MovieService();
 
-  runApp(MyApp(env: env));
+  runApp(MyApp(env: env, movieService: movieService));
 }
 
 class MyApp extends StatelessWidget {
   final String env;
+  final MovieService movieService;
 
-  const MyApp({super.key, required this.env});
+  const MyApp({super.key, required this.env, required this.movieService});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'FlutterBoxd',
-      debugShowCheckedModeBanner: env == 'dev', // Show debug banner only in dev
-      theme: AppTheme.darkTheme,
-      home: const Placeholder(), // We'll replace this with our router later
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => HomeViewmodel(movieService: movieService,),
+        ),
+        // ChangeNotifierProvider(
+        //   create: (_) => SearchViewModel(movieService: movieService),
+        // ),
+        // ChangeNotifierProvider(
+        //   create: (_) => MovieDetailViewModel(movieService: movieService),
+        // ),
+        // ChangeNotifierProvider(create: (_) => WatchlistViewModel()),
+      ],
+      child: MaterialApp(
+        title: 'FlutterBoxd',
+        debugShowCheckedModeBanner: env == 'dev',
+        theme: AppTheme.darkTheme,
+        home: const Placeholder(),
+      ),
     );
   }
 }

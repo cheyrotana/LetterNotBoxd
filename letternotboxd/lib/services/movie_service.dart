@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import '../models/cast.dart';
 import '../models/movie.dart';
